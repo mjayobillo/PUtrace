@@ -1,27 +1,140 @@
 <%- include('partials_header') %>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;">
+  <h2 style="font-size:1.5rem;">👋 Welcome, <%= currentUser.full_name.split(' ')[0] %></h2>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-number"><%= items.length %></div>
+    <div class="stat-label">Items</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= reports.filter(r => r.status === 'open').length %></div>
+    <div class="stat-label">Open Reports</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= reports.filter(r => r.status === 'resolved').length %></div>
+    <div class="stat-label">Resolved</div>
+  </div>
+</div>
+
 <section class="card">
-  <h2>Register Item</h2>
-  <form method="post" action="/dashboard">
-    <label>Item name <input name="item_name" required /></label>
-    <label>Description <textarea name="item_description" rows="3"></textarea></label>
-    <button type="submit">Generate QR</button>
+  <h2>➕ Register New Item</h2>
+  <form method="post" action="/dashboard" enctype="multipart/form-data" style="max-width:500px;">
+    <label>Item name <input name="item_name" required placeholder="e.g. Blue Hydroflask, MacBook Pro" /></label>
+    <label>Category
+      <select name="category">
+        <% categories.forEach((cat) => { %>
+          <option value="<%= cat %>"><%= cat %></option>
+        <% }) %>
+      </select>
+    </label>
+    <label>Description <small style="font-weight:400;color:#aaa;">(optional)</small> <textarea name="item_description" rows="3" placeholder="Color, brand, distinguishing marks..."></textarea></label>
+    <label>Photo <small style="font-weight:400;color:#aaa;">(optional, max 5 MB)</small>
+      <input type="file" name="image" accept="image/*" style="padding:0.4rem;" />
+    </label>
+    <button type="submit">Generate QR Code</button>
   </form>
 </section>
 
 <section class="card">
-  <h2>Your Items</h2>
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">
+    <h2 style="margin-bottom:0;">📦 Your Items</h2>
+  </div>
+
+  <form method="get" action="/dashboard" class="search-filters">
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:flex-end;">
+      <label style="flex:1;min-width:180px;">
+        🔍 Search
+        <input type="text" name="search" value="<%= search %>" placeholder="Search items..." />
+      </label>
+      <label style="min-width:140px;">
+        Category
+        <select name="category">
+          <option value="">All</option>
+          <% categories.forEach((cat) => { %>
+            <option value="<%= cat %>" <%= filterCategory === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label style="min-width:130px;">
+        Status
+        <select name="status">
+          <option value="">All</option>
+          <option value="active" <%= filterStatus === 'active' ? 'selected' : '' %>>Active</option>
+          <option value="lost" <%= filterStatus === 'lost' ? 'selected' : '' %>>Lost</option>
+          <option value="recovered" <%= filterStatus === 'recovered' ? 'selected' : '' %>>Recovered</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-sm">Filter</button>
+      <% if (search || filterCategory || filterStatus) { %>
+        <a href="/dashboard" class="button btn-sm btn-outline">Clear</a>
+      <% } %>
+    </div>
+  </form>
+
   <% if (!items || items.length === 0) { %>
-    <p>No items yet.</p>
+    <div class="center-text" style="padding:2rem;color:#999;">
+      <div style="font-size:3rem;margin-bottom:0.5rem;">📭</div>
+      <% if (search || filterCategory || filterStatus) { %>
+        <p>No items match your filters. <a href="/dashboard">Clear filters</a></p>
+      <% } else { %>
+        <p>No items registered yet. Add your first item above!</p>
+      <% } %>
+    </div>
   <% } else { %>
     <div class="item-grid">
       <% items.forEach((item) => { %>
         <article class="item">
-          <h3><%= item.item_name %></h3>
-          <p><%= item.item_description || 'No description' %></p>
-          <img src="<%= item.qr_data_url %>" alt="QR" width="180" />
-          <p><a href="/download/<%= item.token %>">Download QR</a></p>
-          <p><small>Open finder reports: <%= item.open_reports %></small></p>
-          <p><small><%= baseUrl %>/found/<%= item.token %></small></p>
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:0.5rem;">
+            <h3><%= item.item_name %></h3>
+            <% if (item.item_status === 'lost') { %>
+              <span class="badge badge-lost">Lost</span>
+            <% } else if (item.item_status === 'recovered') { %>
+              <span class="badge badge-resolved">Recovered</span>
+            <% } else { %>
+              <span class="badge badge-active">Active</span>
+            <% } %>
+          </div>
+          <% if (item.category && item.category !== 'Other') { %>
+            <span class="badge badge-category"><%= item.category %></span>
+          <% } %>
+          <% if (item.image_url) { %>
+            <div class="item-image-wrap">
+              <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" />
+            </div>
+          <% } %>
+          <p class="item-desc"><%= item.item_description || 'No description' %></p>
+          <div class="qr-wrap">
+            <img src="<%= item.qr_data_url %>" alt="QR Code" width="160" />
+          </div>
+          <div>
+            <% if (item.open_reports > 0) { %>
+              <span class="badge badge-open">🔔 <%= item.open_reports %> open report<%= item.open_reports > 1 ? 's' : '' %></span>
+            <% } else { %>
+              <span class="badge badge-none">No reports</span>
+            <% } %>
+          </div>
+          <p class="item-meta" style="word-break:break-all;"><%= baseUrl %>/found/<%= item.token %></p>
+          <div class="item-actions">
+            <a href="/download/<%= item.token %>" class="button btn-sm btn-outline">⬇ Download</a>
+            <form method="post" action="/item/<%= item.id %>/status" style="margin:0;">
+              <% if (item.item_status === 'active') { %>
+                <input type="hidden" name="item_status" value="lost" />
+                <button type="submit" class="btn-sm btn-warning">⚠ Mark Lost</button>
+              <% } else if (item.item_status === 'lost') { %>
+                <input type="hidden" name="item_status" value="recovered" />
+                <button type="submit" class="btn-sm btn-success">✓ Recovered</button>
+              <% } else { %>
+                <input type="hidden" name="item_status" value="active" />
+                <button type="submit" class="btn-sm btn-outline">↩ Reactivate</button>
+              <% } %>
+            </form>
+            <form method="post" action="/item/<%= item.id %>/delete" style="margin:0;" onsubmit="return confirm('Delete this item and all its reports?')">
+              <button type="submit" class="btn-sm btn-danger">🗑</button>
+            </form>
+          </div>
         </article>
       <% }) %>
     </div>
@@ -29,9 +142,12 @@
 </section>
 
 <section class="card">
-  <h2>Finder Reports</h2>
+  <h2>📋 Finder Reports</h2>
   <% if (!reports || reports.length === 0) { %>
-    <p>No reports yet.</p>
+    <div class="center-text" style="padding:2rem;color:#999;">
+      <div style="font-size:3rem;margin-bottom:0.5rem;">📭</div>
+      <p>No reports yet. When someone scans your QR code, their report will appear here.</p>
+    </div>
   <% } else { %>
     <table>
       <thead>
@@ -40,15 +156,23 @@
       <tbody>
       <% reports.forEach((r) => { %>
         <tr>
-          <td><%= r.item_name %></td>
-          <td><%= r.finder_name %><br/><small><%= r.finder_email %></small></td>
-          <td><%= r.message %><% if (r.location_hint) { %><br/><small>Location: <%= r.location_hint %></small><% } %></td>
-          <td><%= r.status %></td>
+          <td><strong><%= r.item_name %></strong></td>
+          <td><%= r.finder_name %><br/><small style="color:#888;"><%= r.finder_email %></small></td>
+          <td><%= r.message %><% if (r.location_hint) { %><br/><small style="color:#888;">📍 <%= r.location_hint %></small><% } %></td>
           <td>
             <% if (r.status === 'open') { %>
-              <form method="post" action="/report/<%= r.id %>/resolve"><button type="submit">Resolve</button></form>
+              <span class="badge badge-open">Open</span>
             <% } else { %>
-              -
+              <span class="badge badge-resolved">Resolved</span>
+            <% } %>
+          </td>
+          <td>
+            <% if (r.status === 'open') { %>
+              <form method="post" action="/report/<%= r.id %>/resolve" style="margin:0;">
+                <button type="submit" class="btn-sm btn-success">✓ Resolve</button>
+              </form>
+            <% } else { %>
+              <span style="color:#999;">—</span>
             <% } %>
           </td>
         </tr>

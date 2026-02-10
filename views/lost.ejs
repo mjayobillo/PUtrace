@@ -1,0 +1,86 @@
+<%- include('partials_header') %>
+
+<div style="text-align:center;margin-bottom:1.5rem;">
+  <h2 style="font-size:1.8rem;">🔎 Lost Items Board</h2>
+  <p style="color:#888;max-width:500px;margin:0.5rem auto 0;">Browse items reported lost by PUtrace users. Seen one of these? Let the owner know!</p>
+</div>
+
+<section class="card">
+  <form method="get" action="/lost" class="search-filters">
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;align-items:flex-end;">
+      <label style="flex:1;min-width:180px;">
+        🔍 Search
+        <input type="text" name="search" value="<%= search %>" placeholder="Search lost items..." />
+      </label>
+      <label style="min-width:140px;">
+        Category
+        <select name="category">
+          <option value="">All</option>
+          <% categories.forEach((cat) => { %>
+            <option value="<%= cat %>" <%= filterCategory === cat ? 'selected' : '' %>><%= cat %></option>
+          <% }) %>
+        </select>
+      </label>
+      <button type="submit" class="btn-sm">Filter</button>
+      <% if (search || filterCategory) { %>
+        <a href="/lost" class="button btn-sm btn-outline">Clear</a>
+      <% } %>
+    </div>
+  </form>
+</section>
+
+<% if (!items || items.length === 0) { %>
+  <section class="card center-text" style="padding:3rem;">
+    <div style="font-size:3rem;margin-bottom:0.5rem;">✅</div>
+    <% if (search || filterCategory) { %>
+      <h3>No items match your search</h3>
+      <p style="color:#888;">Try different keywords or <a href="/lost">clear filters</a></p>
+    <% } else { %>
+      <h3>No items reported lost right now</h3>
+      <p style="color:#888;">That's great news! Check back later if you're looking for something.</p>
+    <% } %>
+  </section>
+<% } else { %>
+  <p style="color:#888;margin-bottom:1rem;font-size:0.9rem;"><%= items.length %> item<%= items.length > 1 ? 's' : '' %> reported lost</p>
+
+  <div class="lost-grid">
+    <% items.forEach((item) => { %>
+      <article class="lost-card">
+        <div class="lost-card-header">
+          <div>
+            <h3><%= item.item_name %></h3>
+            <% if (item.category && item.category !== 'Other') { %>
+              <span class="badge badge-category"><%= item.category %></span>
+            <% } %>
+          </div>
+          <span class="badge badge-lost">Lost</span>
+        </div>
+        <% if (item.image_url) { %>
+          <div class="item-image-wrap">
+            <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" />
+          </div>
+        <% } %>
+        <p class="lost-card-desc"><%= item.item_description || 'No description provided' %></p>
+        <div class="lost-card-meta">
+          <span>Posted by <strong><%= item.owner_first_name %></strong></span>
+          <span><%= new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
+        </div>
+
+        <details class="sighting-form">
+          <summary class="button btn-sm btn-outline" style="width:100%;text-align:center;list-style:none;cursor:pointer;">
+            👁 I've seen this item
+          </summary>
+          <form method="post" action="/lost/<%= item.id %>/sighting" style="margin-top:1rem;">
+            <label>Your name <input name="reporter_name" required placeholder="Your full name" /></label>
+            <label>Your email <input type="email" name="reporter_email" required placeholder="you@email.com" /></label>
+            <label>Where did you see it? <input name="location" placeholder="e.g. Library, Room 201" /></label>
+            <label>Details <textarea name="message" rows="3" required placeholder="Describe what you saw..."></textarea></label>
+            <button type="submit" class="btn-sm btn-success">Send Sighting Report</button>
+          </form>
+        </details>
+      </article>
+    <% }) %>
+  </div>
+<% } %>
+
+<%- include('partials_footer') %>
