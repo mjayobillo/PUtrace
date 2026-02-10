@@ -1,4 +1,5 @@
 const path = require("path");
+const crypto = require("crypto");
 const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
@@ -501,7 +502,7 @@ app.get("/download/:token", requireAuth, async (req, res) => {
 });
 
 function cryptoRandomToken() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return crypto.randomBytes(16).toString("hex");
 }
 
 function safeFile(value) {
