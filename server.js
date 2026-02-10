@@ -3,14 +3,19 @@ const express = require("express");
 const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const QRCode = require("qrcode");
+const multer = require("multer");
 const { createClient } = require("@supabase/supabase-js");
 require("dotenv").config();
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 
 const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABASE_SERVICE_ROLE_KEY || "");
+
+const CATEGORIES = ["Electronics", "ID / Cards", "Clothing", "Bags", "Bottles", "Books", "Accessories", "Keys", "Other"];
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -122,9 +127,28 @@ app.get("/logout", (req, res) => {
 });
 
 app.get("/dashboard", requireAuth, async (req, res) => {
-  const { data: items } = await supabase.from("items").select("*").eq("user_id", req.session.userId).order("created_at", { ascending: false });
+  const search = (req.query.search || "").trim();
+  const filterCategory = req.query.category || "";
+  const filterStatus = req.query.status || "";
 
-  const itemIds = (items || []).map((i) => i.id);
+  let query = supabase.from("items").select("*").eq("user_id", req.session.userId).order("created_at", { ascending: false });
+
+  if (filterCategory) query = query.eq("category", filterCategory);
+  if (filterStatus) query = query.eq("item_status", filterStatus);
+
+  const { data: items } = await query;
+
+  let filteredItems = items || [];
+  if (search) {
+    const s = search.toLowerCase();
+    filteredItems = filteredItems.filter((i) =>
+      i.item_name.toLowerCase().includes(s) ||
+      (i.item_description || "").toLowerCase().includes(s) ||
+      (i.category || "").toLowerCase().includes(s)
+    );
+  }
+
+  const itemIds = filteredItems.map((i) => i.id);
   let reports = [];
   if (itemIds.length > 0) {
     const { data } = await supabase
@@ -135,7 +159,7 @@ app.get("/dashboard", requireAuth, async (req, res) => {
     reports = data || [];
   }
 
-  const itemNameMap = Object.fromEntries((items || []).map((i) => [i.id, i.item_name]));
+  const itemNameMap = Object.fromEntries(filteredItems.map((i) => [i.id, i.item_name]));
   const openCounts = {};
   for (const report of reports) {
     if (report.status === "open") {
@@ -143,14 +167,22 @@ app.get("/dashboard", requireAuth, async (req, res) => {
     }
   }
 
-  const viewItems = (items || []).map((i) => ({ ...i, open_reports: openCounts[i.id] || 0 }));
+  const viewItems = filteredItems.map((i) => ({ ...i, open_reports: openCounts[i.id] || 0 }));
   const viewReports = reports.map((r) => ({ ...r, item_name: itemNameMap[r.item_id] || "Unknown item" }));
 
-  res.render("dashboard", { items: viewItems, reports: viewReports, baseUrl: BASE_URL });
+  res.render("dashboard", {
+    items: viewItems,
+    reports: viewReports,
+    baseUrl: BASE_URL,
+    categories: CATEGORIES,
+    search,
+    filterCategory,
+    filterStatus
+  });
 });
 
-app.post("/dashboard", requireAuth, async (req, res) => {
-  const { item_name, item_description } = req.body;
+app.post("/dashboard", requireAuth, upload.single("image"), async (req, res) => {
+  const { item_name, item_description, category } = req.body;
 
   if (!item_name) {
     setFlash(req, "error", "Item name is required.");
@@ -161,10 +193,29 @@ app.post("/dashboard", requireAuth, async (req, res) => {
   const qrUrl = `${BASE_URL}/found/${token}`;
   const qr_data_url = await QRCode.toDataURL(qrUrl);
 
+  let image_url = null;
+  if (req.file) {
+    const ext = path.extname(req.file.originalname).toLowerCase() || ".jpg";
+    const fileName = `${token}${ext}`;
+    const { error: uploadErr } = await supabase.storage
+      .from("item-images")
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false
+      });
+    if (!uploadErr) {
+      const { data: urlData } = supabase.storage.from("item-images").getPublicUrl(fileName);
+      image_url = urlData.publicUrl;
+    }
+  }
+
   const { error } = await supabase.from("items").insert({
     user_id: req.session.userId,
     item_name,
     item_description: item_description || null,
+    category: CATEGORIES.includes(category) ? category : "Other",
+    item_status: "active",
+    image_url,
     token,
     qr_data_url
   });
@@ -176,6 +227,86 @@ app.post("/dashboard", requireAuth, async (req, res) => {
 
   setFlash(req, "success", "Item registered and QR generated.");
   return res.redirect("/dashboard");
+});
+
+// ── Public Lost Board ──
+
+app.get("/lost", async (req, res) => {
+  const search = (req.query.search || "").trim();
+  const filterCategory = req.query.category || "";
+
+  let query = supabase
+    .from("items")
+    .select("id, item_name, item_description, category, image_url, created_at, user_id")
+    .eq("item_status", "lost")
+    .order("created_at", { ascending: false });
+
+  if (filterCategory) query = query.eq("category", filterCategory);
+
+  const { data: items } = await query;
+  let filteredItems = items || [];
+
+  if (search) {
+    const s = search.toLowerCase();
+    filteredItems = filteredItems.filter((i) =>
+      i.item_name.toLowerCase().includes(s) ||
+      (i.item_description || "").toLowerCase().includes(s) ||
+      (i.category || "").toLowerCase().includes(s)
+    );
+  }
+
+  // Get owner first names only (privacy)
+  const userIds = [...new Set(filteredItems.map((i) => i.user_id))];
+  let ownerMap = {};
+  if (userIds.length > 0) {
+    const { data: users } = await supabase.from("users").select("id, full_name").in("id", userIds);
+    for (const u of users || []) {
+      ownerMap[u.id] = u.full_name.split(" ")[0];
+    }
+  }
+
+  const viewItems = filteredItems.map((i) => ({
+    ...i,
+    owner_first_name: ownerMap[i.user_id] || "Someone"
+  }));
+
+  res.render("lost", {
+    items: viewItems,
+    categories: CATEGORIES,
+    search,
+    filterCategory
+  });
+});
+
+app.post("/lost/:id/sighting", async (req, res) => {
+  const { reporter_name, reporter_email, location, message } = req.body;
+
+  const { data: item } = await supabase.from("items").select("id, item_name").eq("id", req.params.id).eq("item_status", "lost").maybeSingle();
+  if (!item) {
+    setFlash(req, "error", "Item not found.");
+    return res.redirect("/lost");
+  }
+
+  if (!reporter_name || !reporter_email || !message) {
+    setFlash(req, "error", "Name, email, and message are required.");
+    return res.redirect("/lost");
+  }
+
+  const { error } = await supabase.from("finder_reports").insert({
+    item_id: item.id,
+    finder_name: reporter_name,
+    finder_email: reporter_email,
+    location_hint: location || null,
+    message: `[Sighting] ${message}`,
+    status: "open"
+  });
+
+  if (error) {
+    setFlash(req, "error", `Failed to submit sighting: ${error.message}`);
+  } else {
+    setFlash(req, "success", `Sighting reported for "${item.item_name}". The owner has been notified!`);
+  }
+  return res.redirect("/lost");
 });
 
 app.get("/found/:token", async (req, res) => {
@@ -228,6 +359,129 @@ app.post("/report/:id/resolve", requireAuth, async (req, res) => {
 
   await supabase.from("finder_reports").update({ status: "resolved" }).eq("id", reportId);
   setFlash(req, "success", "Report marked as resolved.");
+  return res.redirect("/dashboard");
+});
+
+// ── Account ──
+
+app.get("/account", requireAuth, async (req, res) => {
+  const { data: user } = await supabase
+    .from("users")
+    .select("contact_phone, created_at")
+    .eq("id", req.session.userId)
+    .single();
+
+  const { data: items } = await supabase.from("items").select("id").eq("user_id", req.session.userId);
+  const itemIds = (items || []).map((i) => i.id);
+
+  let openReports = 0;
+  let resolvedReports = 0;
+  if (itemIds.length > 0) {
+    const { data: reports } = await supabase.from("finder_reports").select("status").in("item_id", itemIds);
+    for (const r of reports || []) {
+      if (r.status === "open") openReports++;
+      else resolvedReports++;
+    }
+  }
+
+  res.render("account", {
+    phone: user?.contact_phone || null,
+    createdAt: user?.created_at || new Date().toISOString(),
+    itemCount: (items || []).length,
+    openReports,
+    resolvedReports
+  });
+});
+
+app.post("/account", requireAuth, async (req, res) => {
+  const { full_name, contact_phone } = req.body;
+
+  if (!full_name) {
+    setFlash(req, "error", "Full name is required.");
+    return res.redirect("/account");
+  }
+
+  const { error } = await supabase
+    .from("users")
+    .update({ full_name, contact_phone: contact_phone || null })
+    .eq("id", req.session.userId);
+
+  if (error) {
+    setFlash(req, "error", `Update failed: ${error.message}`);
+  } else {
+    setFlash(req, "success", "Profile updated.");
+  }
+  return res.redirect("/account");
+});
+
+app.post("/account/password", requireAuth, async (req, res) => {
+  const { current_password, new_password } = req.body;
+
+  if (!new_password || new_password.length < 8) {
+    setFlash(req, "error", "New password must be at least 8 characters.");
+    return res.redirect("/account");
+  }
+
+  const { data: user } = await supabase.from("users").select("password_hash").eq("id", req.session.userId).single();
+
+  const ok = await bcrypt.compare(current_password || "", user.password_hash);
+  if (!ok) {
+    setFlash(req, "error", "Current password is incorrect.");
+    return res.redirect("/account");
+  }
+
+  const password_hash = await bcrypt.hash(new_password, 10);
+  await supabase.from("users").update({ password_hash }).eq("id", req.session.userId);
+
+  setFlash(req, "success", "Password updated.");
+  return res.redirect("/account");
+});
+
+// ── Item Status Toggle ──
+
+app.post("/item/:id/status", requireAuth, async (req, res) => {
+  const { item_status } = req.body;
+  const allowed = ["active", "lost", "recovered"];
+
+  const { data: item } = await supabase
+    .from("items")
+    .select("id, user_id")
+    .eq("id", req.params.id)
+    .maybeSingle();
+
+  if (!item || item.user_id !== req.session.userId) {
+    setFlash(req, "error", "Item not found.");
+    return res.redirect("/dashboard");
+  }
+
+  if (!allowed.includes(item_status)) {
+    setFlash(req, "error", "Invalid status.");
+    return res.redirect("/dashboard");
+  }
+
+  await supabase.from("items").update({ item_status }).eq("id", item.id);
+  setFlash(req, "success", `Item marked as ${item_status}.`);
+  return res.redirect("/dashboard");
+});
+
+// ── Delete Item ──
+
+app.post("/item/:id/delete", requireAuth, async (req, res) => {
+  const { data: item } = await supabase
+    .from("items")
+    .select("id, user_id")
+    .eq("id", req.params.id)
+    .maybeSingle();
+
+  if (!item || item.user_id !== req.session.userId) {
+    setFlash(req, "error", "Item not found.");
+    return res.redirect("/dashboard");
+  }
+
+  await supabase.from("finder_reports").delete().eq("item_id", item.id);
+  await supabase.from("items").delete().eq("id", item.id);
+
+  setFlash(req, "success", "Item deleted.");
   return res.redirect("/dashboard");
 });
 

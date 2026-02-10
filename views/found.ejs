@@ -1,26 +1,57 @@
 <%- include('partials_header') %>
-<section class="card">
-  <h2>Found Item: <%= item.item_name %></h2>
-  <p><%= item.item_description || 'No description available.' %></p>
-  <h3>Return Instructions</h3>
-  <ol>
-    <li>Keep the item safe.</li>
-    <li>Contact owner or submit report below.</li>
-    <li>Return through campus lost-and-found office when possible.</li>
-  </ol>
-  <p><strong>Owner:</strong> <%= owner.full_name %></p>
-  <p><strong>Email:</strong> <a href="mailto:<%= owner.email %>"><%= owner.email %></a></p>
-  <% if (owner.contact_phone) { %><p><strong>Phone:</strong> <%= owner.contact_phone %></p><% } %>
+
+<section class="found-hero">
+  <div style="font-size:3rem;margin-bottom:0.5rem;">✅</div>
+  <h2>You Found: <%= item.item_name %></h2>
+  <p>Thank you for being awesome! Here's how to return this item.</p>
 </section>
 
 <section class="card">
-  <h3>Send message to owner</h3>
+  <h3>📦 Item Details</h3>
+  <% if (item.image_url) { %>
+    <div class="item-image-wrap" style="margin-bottom:1rem;">
+      <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" style="max-width:300px;" />
+    </div>
+  <% } %>
+  <p style="color:#666;margin-bottom:1rem;"><%= item.item_description || 'No description available.' %></p>
+
+  <h3>👤 Owner Information</h3>
+  <div class="owner-info">
+    <div class="owner-info-item">
+      <strong>Name:</strong>&nbsp; <%= owner.full_name %>
+    </div>
+    <div class="owner-info-item">
+      <strong>Email:</strong>&nbsp; <a href="mailto:<%= owner.email %>"><%= owner.email %></a>
+    </div>
+    <% if (owner.contact_phone) { %>
+    <div class="owner-info-item">
+      <strong>Phone:</strong>&nbsp; <%= owner.contact_phone %>
+    </div>
+    <% } %>
+  </div>
+
+  <hr style="margin:1.5rem 0;border:none;border-top:1px solid #f0f2f5;">
+
+  <h3>📋 Return Instructions</h3>
+  <ol style="padding-left:1.2rem;color:#555;line-height:2;">
+    <li>Keep the item safe and secure</li>
+    <li>Contact the owner using the info above, or submit a report below</li>
+    <li>If on campus, you can also drop it at the lost-and-found office</li>
+  </ol>
+</section>
+
+<section class="card narrow">
+  <div class="center-text" style="margin-bottom:1rem;">
+    <h3>✉️ Send a Message to the Owner</h3>
+    <p style="color:#888;font-size:0.85rem;">Let them know you found their item</p>
+  </div>
   <form method="post" action="/found/<%= item.token %>">
-    <label>Your name <input name="finder_name" required /></label>
-    <label>Your email <input type="email" name="finder_email" required /></label>
-    <label>Location found <input name="location_hint" /></label>
-    <label>Message <textarea name="message" rows="4" required></textarea></label>
-    <button type="submit">Submit report</button>
+    <label>Your name <input name="finder_name" required placeholder="Your full name" /></label>
+    <label>Your email <input type="email" name="finder_email" required placeholder="you@email.com" /></label>
+    <label>Where did you find it? <small style="font-weight:400;color:#aaa;">(optional)</small> <input name="location_hint" placeholder="e.g. Library 2nd floor, Cafeteria" /></label>
+    <label>Message <textarea name="message" rows="4" required placeholder="Hi! I found your item at..."></textarea></label>
+    <button type="submit" class="btn-success">Send Report to Owner</button>
   </form>
 </section>
+
 <%- include('partials_footer') %>
