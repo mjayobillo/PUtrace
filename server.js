@@ -388,10 +388,10 @@ app.post("/lost/:id/sighting", async (req, res) => {
   } else {
     setFlash(req, "success", `Sighting reported for "${item.item_name}". The owner has been notified!`);
 
-    // Email the owner
+    // Email the owner (non-blocking)
     const { data: owner } = await supabase.from("users").select("email, full_name").eq("id", item.user_id).single();
     if (owner) {
-      await sendEmail(
+      sendEmail(
         owner.email,
         `🔔 Sighting report for "${item.item_name}" — PUtrace`,
         `<h2>Hi ${owner.full_name.split(" ")[0]},</h2>
@@ -404,7 +404,7 @@ app.post("/lost/:id/sighting", async (req, res) => {
          </table>
          <p><a href="${BASE_URL}/dashboard" style="background:#3a56e4;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;">View in Dashboard</a></p>
          <p style="color:#999;font-size:0.85rem;margin-top:2rem;">— PUtrace Campus Item Recovery</p>`
-      );
+      ).catch(err => console.error("Failed to email owner:", err.message));
     }
   }
   return res.redirect("/lost");
@@ -458,10 +458,10 @@ app.post("/found/:token", async (req, res) => {
 
   setFlash(req, "success", "Report submitted to owner.");
 
-  // Email the owner about the found item report
+  // Email the owner about the found item report (non-blocking)
   const { data: owner } = await supabase.from("users").select("email, full_name").eq("id", item.user_id).single();
   if (owner) {
-    await sendEmail(
+    sendEmail(
       owner.email,
       `🎉 Someone found your "${item.item_name}"! — PUtrace`,
       `<h2>Hi ${owner.full_name.split(" ")[0]},</h2>
@@ -474,7 +474,7 @@ app.post("/found/:token", async (req, res) => {
        </table>
        <p><a href="${BASE_URL}/dashboard" style="background:#3a56e4;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;">View in Dashboard</a></p>
        <p style="color:#999;font-size:0.85rem;margin-top:2rem;">— PUtrace Campus Item Recovery</p>`
-    );
+    ).catch(err => console.error("Failed to email owner:", err.message));
   }
 
   return res.redirect(`/found/${req.params.token}`);
