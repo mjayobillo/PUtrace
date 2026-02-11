@@ -5,7 +5,6 @@ const session = require("express-session");
 const bcrypt = require("bcryptjs");
 const QRCode = require("qrcode");
 const multer = require("multer");
-const nodemailer = require("nodemailer");
 const sharp = require("sharp");
 const { createClient } = require("@supabase/supabase-js");
 require("dotenv").config();
@@ -20,29 +19,9 @@ const supabase = createClient(process.env.SUPABASE_URL || "", process.env.SUPABA
 
 const CATEGORIES = ["Electronics", "ID / Cards", "Clothing", "Bags", "Bottles", "Books", "Accessories", "Keys", "Other"];
 
-// ── Email Transporter ──
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || ""
-  }
-});
-
+// Email sending disabled for now
 async function sendEmail(to, subject, html) {
-  if (!process.env.SMTP_USER) return; // skip if email not configured
-  try {
-    await transporter.sendMail({
-      from: `"PUtrace" <${process.env.SMTP_USER}>`,
-      to,
-      subject,
-      html
-    });
-  } catch (err) {
-    console.error("Email send failed:", err.message);
-  }
+  return; // no-op
 }
 
 // ── Validation Helpers ──
