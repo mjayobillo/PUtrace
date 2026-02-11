@@ -1,8 +1,5 @@
 # PUtrace (Node.js + Supabase)
 
-You asked: **"why not node js and supabase?"**
-
-✅ This version is now built with **Node.js (Express)** and **Supabase (Postgres)**, which is a great college-level stack for fast deployment and team collaboration.
 
 ## Stack
 - Backend: Express (Node.js)
