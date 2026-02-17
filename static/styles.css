@@ -55,7 +55,7 @@ a:hover { color: #2a3eb1; }
   animation: fadeIn 0.4s ease;
 }
 .site-header .brand { display: flex; align-items: center; gap: 0.6rem; }
-.site-header .logo-img { height: 40px; width: 40px; border-radius: 8px; object-fit: contain; }
+.site-header .logo-img { height: 56px; width: 56px; border-radius: 8px; object-fit: contain; margin-right: 1rem; }
 .site-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
 .sub { font-size: 0.75rem; opacity: 0.7; margin-top: 2px; }
 nav { display: flex; align-items: center; gap: 0.3rem; }
