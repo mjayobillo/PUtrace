@@ -396,7 +396,7 @@ app.get("/found/:token", async (req, res) => {
 
   const { data: owner } = await supabase.from("users").select("full_name, email").eq("id", item.user_id).single();
 
-  return res.render("found", { item, owner });
+  return res.render("found_qr", { item, owner });
 });
 
 app.post("/found/:token", async (req, res) => {
@@ -486,7 +486,7 @@ app.get("/found-items", async (req, res) => {
     );
   }
 
-  res.render("found_board", {
+  res.render("found_items", {
     posts: filteredPosts,
     categories: CATEGORIES,
     search,
