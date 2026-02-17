@@ -142,3 +142,5 @@ The app will be available at `http://localhost:5000`.
 4. Simulate the lost/found flow by scanning a QR code.
 5. Test the Found Items Board by posting and claiming items.
 6. Measure recovery response rate and turnaround time.
+
+<!-- trigger redeploy for logo update -->
