@@ -3,11 +3,15 @@
 <section class="hero">
   <h2>Never Lose What Matters</h2>
   <p>Tag your belongings with unique QR codes. When someone finds your lost item, they can instantly reach you.</p>
-  <% if (currentUser) { %>
-    <a class="button" href="/dashboard">Go to Dashboard</a>
-  <% } else { %>
-    <a class="button" href="/signup" style="position:relative;z-index:10;">Sign Up</a>
-  <% } %>
+  <div class="hero-actions">
+    <% if (currentUser) { %>
+      <a class="button" href="/dashboard">Go to Dashboard</a>
+      <a class="button hero-secondary-btn" href="/lost">Lost Board</a>
+    <% } else { %>
+      <a class="button" href="/signup">Sign Up Free</a>
+      <a class="button hero-secondary-btn" href="/login">Login</a>
+    <% } %>
+  </div>
 </section>
 
 <div class="feature-grid">
@@ -38,17 +42,17 @@
   <p style="color:#666; max-width:600px; margin:0 auto 1.5rem;">Three simple steps to protect your belongings</p>
   <div class="feature-grid">
     <div class="feature-card">
-      <div class="feature-icon">1️⃣</div>
+      <div class="feature-icon"><span class="step-circle">1</span></div>
       <h3>Register Your Item</h3>
       <p>Add your item name and description to generate a unique QR code.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">2️⃣</div>
+      <div class="feature-icon"><span class="step-circle">2</span></div>
       <h3>Attach the QR</h3>
       <p>Download and print the QR code. Stick it on your item.</p>
     </div>
     <div class="feature-card">
-      <div class="feature-icon">3️⃣</div>
+      <div class="feature-icon"><span class="step-circle">3</span></div>
       <h3>Get Notified</h3>
       <p>If someone finds your item, they scan the code and you get a report.</p>
     </div>

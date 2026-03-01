@@ -3,27 +3,33 @@
     <head>
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>PUTrace</title>
-      <link rel="stylesheet" href="/styles.css" />
-    </head>
-    <body>
-      <a class="skip-link" href="#main-content">Skip to main content</a>
       <%
         const path = currentPath || '/';
         const isActive = (href) => path === href || path.startsWith(href + '/');
         const unreadCount = (typeof unreadMessagesCount === 'number' && Number.isFinite(unreadMessagesCount))
           ? unreadMessagesCount
           : 0;
+        const _tm = {'/':null,'/dashboard':'Dashboard','/login':'Login','/signup':'Sign Up','/lost':'Lost Board','/found-items':'Found Items','/account':'Account','/items/new':'Register Item','/messages':'Messages','/forgot-password':'Forgot Password','/reset-password':'Reset Password'};
+        const _label = _tm['/' + (path.split('/')[1] || '')];
+        const _docTitle = _label ? _label + ' \u2014 PUTrace' : 'PUTrace \u2014 Campus Item Recovery';
       %>
+      <title><%= _docTitle %></title>
+      <link rel="stylesheet" href="/styles.css" />
+    </head>
+    <body>
+      <a class="skip-link" href="#main-content">Skip to main content</a>
       <header class="site-header">
-        <div class="brand">
-          <img src="/putrace_circular_logo.png" alt="PUTrace Logo" class="logo-img" />
-          <div>
-            <h1>PUTrace</h1>
-            <p class="sub">Campus Item Recovery System</p>
+        <div class="header-top">
+          <div class="brand">
+            <img src="/putrace_circular_logo.png" alt="PUTrace Logo" class="logo-img" />
+            <div>
+              <h1>PUTrace</h1>
+              <p class="sub">Campus Item Recovery System</p>
+            </div>
           </div>
+          <button class="nav-hamburger" id="nav-toggle" aria-label="Open navigation menu" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
         </div>
-        <nav class="site-nav" aria-label="Primary">
+        <nav class="site-nav" id="site-nav" aria-label="Primary">
           <a href="/" class="<%= path === '/' ? 'active' : '' %>">Home</a>
           <% if (currentUser) { %>
             <div class="site-nav-group">
@@ -59,6 +65,18 @@
                 <p class="success-message"><%= flash.message %></p>
                 <div class="success-actions">
                   <button type="button" class="btn-sm" id="success-modal-ok">OK</button>
+                </div>
+              </div>
+            </div>
+          <% } else if (flash.type === 'error') { %>
+            <div id="error-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="error-title">
+              <div class="modal-box modal-box-error">
+                <button type="button" class="modal-close" id="error-modal-close" aria-label="Close notification">&times;</button>
+                <div style="text-align:center;margin-bottom:0.8rem;font-size:2.2rem;">&#9888;&#65039;</div>
+                <h3 id="error-title" class="error-title">Heads up</h3>
+                <p class="error-message"><%= flash.message %></p>
+                <div class="success-actions">
+                  <button type="button" class="btn-sm btn-danger" id="error-modal-ok">OK</button>
                 </div>
               </div>
             </div>

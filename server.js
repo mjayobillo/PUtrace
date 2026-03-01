@@ -170,6 +170,23 @@ app.use(async (req, res, next) => {
       .eq("id", req.session.userId)
       .single();
     res.locals.currentUser = data || null;
+
+    // Count open finder reports for the Messages nav badge
+    const { data: userItems } = await supabase
+      .from("items")
+      .select("id")
+      .eq("user_id", req.session.userId);
+    const ownedIds = (userItems || []).map((i) => i.id);
+    let unread = 0;
+    if (ownedIds.length > 0) {
+      const { count } = await supabase
+        .from("finder_reports")
+        .select("id", { count: "exact", head: true })
+        .in("item_id", ownedIds)
+        .eq("status", "open");
+      unread = count || 0;
+    }
+    res.locals.unreadMessagesCount = unread;
   }
   next();
 });
@@ -491,6 +508,9 @@ async function handleRegisterItem(req, res) {
 
     if (!item_name || item_name.length > 150) {
       return flashRedirect(req, res, "/items/new", "error", "Item name is required (max 150 characters).");
+    }
+    if (item_description && item_description.length > 1000) {
+      return flashRedirect(req, res, "/items/new", "error", "Description is too long (max 1000 characters).");
     }
 
     // Generate unique token and QR code
@@ -1032,11 +1052,16 @@ app.post("/item/:id/status", requireAuth, async (req, res) => {
 // ── Delete Item ──
 
 app.post("/item/:id/delete", requireAuth, async (req, res) => {
-  const item = await getOwnedItem(req, req.params.id);
+  const item = await getOwnedItem(req, req.params.id, "id, user_id, image_url");
   if (!item) { setFlash(req, "error", "Item not found."); return res.redirect("/dashboard"); }
 
-  // Delete related reports first, then the item
-  await supabase.from("finder_reports").delete().eq("item_id", item.id);
+  // Remove item image from storage if one was uploaded
+  if (item.image_url) {
+    const fileName = item.image_url.split("/").pop().split("?")[0];
+    await supabase.storage.from("item-images").remove([fileName]);
+  }
+
+  // Cascade on finder_reports and report_messages is handled by the schema
   await supabase.from("items").delete().eq("id", item.id);
   setFlash(req, "success", "Item deleted.");
   return res.redirect("/dashboard");

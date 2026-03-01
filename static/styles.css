@@ -89,6 +89,21 @@ select:focus-visible,
   z-index: 100;
   animation: fadeIn 0.4s ease;
 }
+.header-top { display: flex; align-items: center; gap: 0.6rem; }
+.nav-hamburger {
+  display: none;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.38rem 0.7rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: none;
+}
+.nav-hamburger:hover { background: rgba(255,255,255,0.2); transform: none; box-shadow: none; }
+.nav-hamburger::after { display: none; }
 .site-header .brand { display: flex; align-items: center; gap: 0.6rem; }
 .site-header .logo-img { height: 56px; width: 56px; border-radius: 8px; object-fit: contain; margin-right: 1rem; }
 .site-header h1 { margin: 0; font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; }
@@ -393,6 +408,19 @@ button:active, .button:active { transform: translateY(0); box-shadow: 0 2px 8px 
 .feature-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
 .feature-icon { font-size: 2.5rem; margin-bottom: 1rem; transition: transform 0.3s; }
 .feature-card:hover .feature-icon { transform: scale(1.2); }
+.step-circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3a56e4, #2a3eb1);
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(58,86,228,0.35);
+}
 .feature-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; color: #1a1a2e; }
 .feature-card p { font-size: 0.9rem; color: #666; }
 
@@ -641,7 +669,7 @@ tr:hover td { background: #fafbfd; }
 .not-found-icon { font-size: 4rem; margin-bottom: 1rem; animation: pulse 2s ease-in-out infinite; }
 
 /* ===== Lost Board ===== */
-.lost-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.2rem; }
+.lost-grid { display: grid; grid-template-columns: 1fr; gap: 1.2rem; }
 .lost-card {
   background: #fff;
   border-radius: 14px;
@@ -659,10 +687,17 @@ tr:hover td { background: #fafbfd; }
 .lost-card-header { display: flex; justify-content: space-between; align-items: start; gap: 0.5rem; margin-bottom: 0.6rem; }
 .lost-card-header h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
 .lost-card-desc { font-size: 0.9rem; color: #666; margin-bottom: 1rem; line-height: 1.5; }
-.lost-card-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #999; margin-bottom: 1rem; padding-top: 0.8rem; border-top: 1px solid #f0f2f5; }
-.sighting-form { margin-top: 0.8rem; }
-.sighting-form summary { outline: none; }
-.sighting-form summary::-webkit-details-marker { display: none; }
+.lost-card-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: #999; margin-bottom: 0; padding-top: 0.8rem; border-top: 1px solid #f0f2f5; }
+.lost-card-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; align-items: stretch; }
+.lost-card-info { padding-right: 1.2rem; }
+.lost-card-form-panel {
+  border-left: 2px solid #eef2ff;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+}
+.lost-card-form-panel h4 { font-size: 0.92rem; font-weight: 700; color: #3a56e4; margin-bottom: 0.3rem; }
+.lost-sighting-hint { font-size: 0.8rem; color: #888; margin-bottom: 0.8rem; }
 
 /* ===== Footer ===== */
 .site-footer {
@@ -713,6 +748,19 @@ tr:hover td { background: #fafbfd; }
 .modal-close::after { display: none; }
 .success-title { margin-bottom: 0.7rem; }
 .success-message { color: var(--text-600); }
+.modal-box-error { border-top: 4px solid #e74c3c; }
+.error-title { margin-bottom: 0.7rem; color: #c0392b; text-align: center; }
+.error-message { color: var(--text-600); text-align: center; }
+.school-email-note {
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.88rem;
+  color: #3730a3;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
 .success-actions { margin-top: 1rem; }
 .modal-info {
   background: #f8f9fc;
@@ -733,27 +781,46 @@ tr:hover td { background: #fafbfd; }
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .site-header {
-    padding: 0.8rem 1rem;
+    padding: 0.75rem 1rem;
     flex-direction: column;
     height: auto;
-    gap: 0.5rem;
-    text-align: center;
+    gap: 0;
+    align-items: stretch;
   }
-  .site-header .brand { justify-content: center; }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  .nav-hamburger { display: flex; }
+  .site-header .brand { justify-content: flex-start; }
   .site-header h1 { font-size: 1.1rem; }
   .sub { display: none; }
-  .site-nav { flex-wrap: wrap; justify-content: center; gap: 0.35rem; }
+  .site-nav {
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    width: 100%;
+    padding: 0.55rem 0 0.3rem;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    margin-top: 0.6rem;
+  }
+  .site-nav.nav-open { display: flex; }
   .site-nav-group {
     gap: 0.15rem;
     flex-wrap: wrap;
-    justify-content: center;
+    justify-content: flex-start;
   }
   .site-nav-group.secondary {
     margin-left: 0;
     padding-left: 0;
     border-left: none;
+    border-top: 1px solid rgba(255,255,255,0.12);
+    padding-top: 0.35rem;
+    margin-top: 0.25rem;
   }
-  .site-nav a { padding: 0.38rem 0.56rem; font-size: 0.82rem; }
+  .site-nav a { padding: 0.38rem 0.6rem; font-size: 0.85rem; }
   main { padding: 0 0.8rem; margin: 1rem auto; }
   .hero { padding: 2rem 1.2rem; border-radius: 14px; }
   .hero h2 { font-size: 1.6rem; }
@@ -778,6 +845,9 @@ tr:hover td { background: #fafbfd; }
   }
   .item-grid { grid-template-columns: 1fr; }
   .lost-grid { grid-template-columns: 1fr; }
+  .lost-card-split { grid-template-columns: 1fr; }
+  .lost-card-info { padding-right: 0; }
+  .lost-card-form-panel { border-left: none; padding-left: 0; border-top: 2px solid #eef2ff; padding-top: 1rem; margin-top: 0.5rem; }
   .feature-grid { grid-template-columns: 1fr; }
   .feature-card { padding: 1.5rem 1rem; }
   table { display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }

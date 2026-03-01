@@ -45,39 +45,39 @@
 
   <div class="lost-grid">
     <% items.forEach((item) => { %>
-      <article class="lost-card">
-        <div class="lost-card-header">
-          <div>
-            <h3><%= item.item_name %></h3>
-            <% if (item.category && item.category !== 'Other') { %>
-              <span class="badge badge-category"><%= item.category %></span>
-            <% } %>
+      <article class="lost-card lost-card-split">
+        <div class="lost-card-info">
+          <div class="lost-card-header">
+            <div>
+              <h3><%= item.item_name %></h3>
+              <% if (item.category && item.category !== 'Other') { %>
+                <span class="badge badge-category"><%= item.category %></span>
+              <% } %>
+            </div>
+            <span class="badge badge-lost">Lost</span>
           </div>
-          <span class="badge badge-lost">Lost</span>
-        </div>
-        <% if (item.image_url) { %>
-          <div class="item-image-wrap">
-            <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" />
+          <% if (item.image_url) { %>
+            <div class="item-image-wrap">
+              <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" />
+            </div>
+          <% } %>
+          <p class="lost-card-desc"><%= item.item_description || 'No description provided' %></p>
+          <div class="lost-card-meta">
+            <span>Posted by <strong><%= item.owner_first_name %></strong></span>
+            <span><%= new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
           </div>
-        <% } %>
-        <p class="lost-card-desc"><%= item.item_description || 'No description provided' %></p>
-        <div class="lost-card-meta">
-          <span>Posted by <strong><%= item.owner_first_name %></strong></span>
-          <span><%= new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></span>
         </div>
-
-        <details class="sighting-form">
-          <summary class="button btn-sm btn-outline" style="width:100%;text-align:center;list-style:none;cursor:pointer;">
-            👁 I've seen this item
-          </summary>
-          <form method="post" action="/lost/<%= item.id %>/sighting" style="margin-top:1rem;">
+        <div class="lost-card-form-panel">
+          <h4>&#128065; Report a Sighting</h4>
+          <p class="lost-sighting-hint">Seen this item? Fill in the form and let the owner know.</p>
+          <form method="post" action="/lost/<%= item.id %>/sighting" onsubmit="return confirm('Submit a sighting report for this item?')">
             <label>Your name <input name="reporter_name" required placeholder="Your full name" /></label>
-            <label>Your email <input type="email" name="reporter_email" required placeholder="you@email.com" /></label>
+            <label>Your email <input type="email" name="reporter_email" required placeholder="you@panpacificu.edu.ph" /></label>
             <label>Where did you see it? <input name="location" placeholder="e.g. Library, Room 201" /></label>
             <label>Details <textarea name="message" rows="3" required placeholder="Describe what you saw..."></textarea></label>
-            <button type="submit" class="btn-sm btn-success">Send Sighting Report</button>
+            <button type="submit" class="btn-sm btn-success" style="width:100%">&#10003; Send Sighting Report</button>
           </form>
-        </details>
+        </div>
       </article>
     <% }) %>
   </div>

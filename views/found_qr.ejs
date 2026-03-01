@@ -45,7 +45,7 @@
     <label>Your email <input type="email" name="finder_email" required placeholder="you@email.com" /></label>
     <label>Where did you find it? <small style="font-weight:400;color:#aaa;">(optional)</small> <input name="location_hint" placeholder="e.g. Library 2nd floor, Cafeteria" /></label>
     <label>Message <textarea name="message" rows="4" required placeholder="Hi! I found your item at..."></textarea></label>
-    <button type="submit" class="btn-success">Send Report to Owner</button>
+    <button type="submit" class="btn-success" onclick="return confirm('Send this finder report to the owner?')">Send Report to Owner</button>
   </form>
 </section>
 
