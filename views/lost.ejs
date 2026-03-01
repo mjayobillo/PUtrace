@@ -71,8 +71,8 @@
           <h4>&#128065; Report a Sighting</h4>
           <p class="lost-sighting-hint">Seen this item? Fill in the form and let the owner know.</p>
           <form class="sighting-form-el" method="post" action="/lost/<%= item.id %>/sighting">
-            <label>Your name <input name="reporter_name" required placeholder="Your full name" /></label>
-            <label>Your email <input type="email" name="reporter_email" required placeholder="you@panpacificu.edu.ph" /></label>
+            <label>Your name <input name="reporter_name" required placeholder="Your full name" value="<%= currentUser ? currentUser.full_name : '' %>" /></label>
+            <label>Your email <input type="email" name="reporter_email" required placeholder="you@panpacificu.edu.ph" value="<%= currentUser ? currentUser.email : '' %>" /></label>
             <label>Where did you see it? <input name="location" placeholder="e.g. Library, Room 201" /></label>
             <label>Details <textarea name="message" rows="3" required placeholder="Describe what you saw..."></textarea></label>
             <button type="submit" class="btn-sm btn-success" style="width:100%">&#10003; Send Sighting Report</button>

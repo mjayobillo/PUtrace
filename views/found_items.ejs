@@ -13,8 +13,8 @@
     </summary>
     <form method="post" action="/found-items" enctype="multipart/form-data" style="margin-top:1.2rem;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <label>Your name <input name="finder_name" required placeholder="Your full name" /></label>
-        <label>Your email <input type="email" name="finder_email" required placeholder="you@email.com" /></label>
+        <label>Your name <input name="finder_name" required placeholder="Your full name" value="<%= currentUser ? currentUser.full_name : '' %>" /></label>
+        <label>Your email <input type="email" name="finder_email" required placeholder="you@email.com" value="<%= currentUser ? currentUser.email : '' %>" /></label>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
         <label>Item name <input name="item_name" required placeholder="e.g. Black Hydro Flask" /></label>
