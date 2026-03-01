@@ -179,12 +179,22 @@ app.use(async (req, res, next) => {
     const ownedIds = (userItems || []).map((i) => i.id);
     let unread = 0;
     if (ownedIds.length > 0) {
-      const { count } = await supabase
+      // Get IDs of open reports on owned items
+      const { data: openReports } = await supabase
         .from("finder_reports")
-        .select("id", { count: "exact", head: true })
+        .select("id")
         .in("item_id", ownedIds)
         .eq("status", "open");
-      unread = count || 0;
+      const openReportIds = (openReports || []).map((r) => r.id);
+      if (openReportIds.length > 0) {
+        // Count messages in those threads sent by finders (not by the owner)
+        const { count } = await supabase
+          .from("report_messages")
+          .select("id", { count: "exact", head: true })
+          .in("report_id", openReportIds)
+          .neq("sender_user_id", req.session.userId);
+        unread = count || 0;
+      }
     }
     res.locals.unreadMessagesCount = unread;
   }
@@ -494,7 +504,8 @@ app.get("/dashboard", requireAuth, async (req, res) => {
   }
 });
 
-// Register item page
+// ── Register Item ──
+
 app.get("/items/new", requireAuth, (req, res) => {
   res.render("new_item", { categories: CATEGORIES });
 });
@@ -622,9 +633,8 @@ app.post("/lost/:id/sighting", requireAuth, async (req, res) => {
 
     if (error) {
       return flashRedirect(req, res, "/lost", "error", "Failed to submit sighting.");
-    } else {
-      return flashRedirect(req, res, "/lost", "success", `Sighting reported for "${item.item_name}". The owner has been notified!`);
     }
+    return flashRedirect(req, res, "/lost", "success", `Sighting reported for "${item.item_name}". The owner has been notified!`);
   } catch (err) {
     console.error("Sighting error:", err);
     return flashRedirect(req, res, "/lost", "error", "Something went wrong.");
@@ -676,9 +686,8 @@ app.post("/found/:token", async (req, res) => {
 
     if (error) {
       return flashRedirect(req, res, `/found/${req.params.token}`, "error", "Failed to submit report.");
-    } else {
-      return flashRedirect(req, res, `/found/${req.params.token}`, "success", "Report submitted to owner!");
     }
+    return flashRedirect(req, res, `/found/${req.params.token}`, "success", "Report submitted to owner!");
   } catch (err) {
     console.error("QR report error:", err);
     return flashRedirect(req, res, `/found/${req.params.token}`, "error", "Something went wrong.");
@@ -741,9 +750,8 @@ app.post("/found-items", requireAuth, upload.single("image"), async (req, res) =
 
     if (error) {
       return flashRedirect(req, res, "/found-items", "error", "Failed to post item.");
-    } else {
-      return flashRedirect(req, res, "/found-items", "success", "Found item posted! The owner can now find it here.");
     }
+    return flashRedirect(req, res, "/found-items", "success", "Found item posted! The owner can now find it here.");
   } catch (err) {
     console.error("Post found item error:", err);
     return flashRedirect(req, res, "/found-items", "error", "Something went wrong.");
@@ -808,6 +816,20 @@ app.get("/messages", requireAuth, async (req, res) => {
     }
     const reports = [...mergedMap.values()];
 
+    // Fetch latest chat message per report to use as conversation preview
+    const reportIds = reports.map((r) => r.id);
+    let latestMsgMap = {};
+    if (reportIds.length > 0) {
+      const { data: latestMsgs } = await supabase
+        .from("report_messages")
+        .select("report_id, message, created_at")
+        .in("report_id", reportIds)
+        .order("created_at", { ascending: false });
+      for (const m of latestMsgs || []) {
+        if (!latestMsgMap[m.report_id]) latestMsgMap[m.report_id] = m;
+      }
+    }
+
     const allItemIds = [...new Set(reports.map((r) => r.item_id))];
     let itemsById = {};
     if (allItemIds.length > 0) {
@@ -835,11 +857,11 @@ app.get("/messages", requireAuth, async (req, res) => {
         return {
           id: r.id,
           item_name: item.item_name,
-          preview: r.message,
+          preview: latestMsgMap[r.id]?.message || r.message,
           status: r.status,
           role,
           counterpart_name: counterpartName,
-          created_at: r.created_at
+          created_at: latestMsgMap[r.id]?.created_at || r.created_at
         };
       })
       .filter(Boolean)

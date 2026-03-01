@@ -32,4 +32,11 @@
   </form>
 </section>
 
+<script>
+  (function () {
+    var thread = document.querySelector('.chat-thread');
+    if (thread) thread.scrollTop = thread.scrollHeight;
+  })();
+</script>
+
 <%- include('_footer') %>
