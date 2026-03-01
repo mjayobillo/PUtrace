@@ -37,7 +37,11 @@
     </div>
   <% } %>
 
-  <p class="item-desc"><%= item.item_description || 'No description' %></p>
+  <% if (item.item_description) { %>
+    <p class="item-desc"><strong>Description:</strong> <%= item.item_description %></p>
+  <% } else { %>
+    <p class="item-desc">No description</p>
+  <% } %>
 
   <div class="qr-wrap">
     <img src="<%= item.qr_data_url %>" alt="QR Code" width="160" />

@@ -13,7 +13,9 @@
       <img src="<%= item.image_url %>" alt="<%= item.item_name %>" class="item-image" style="max-width:300px;" />
     </div>
   <% } %>
-  <p style="color:#666;margin-bottom:1rem;"><%= item.item_description || 'No description available.' %></p>
+  <% if (item.item_description) { %>
+    <p style="color:#666;margin-bottom:1rem;"><strong>Description:</strong> <%= item.item_description %></p>
+  <% } %>
 
   <h3>👤 Owner Information</h3>
   <div class="owner-info">
@@ -21,7 +23,7 @@
       <strong>Name:</strong>&nbsp; <%= owner.full_name %>
     </div>
     <div class="owner-info-item">
-      <strong>Email:</strong>&nbsp; <a href="mailto:<%= owner.email %>"><%= owner.email %></a>
+      <strong>Email:</strong>&nbsp; <a href="mailto:<%= owner.email %>" style="word-break:break-all;"><%= owner.email %></a>
     </div>
   </div>
 
