@@ -63,31 +63,41 @@ function buildResetLink(token) {
   return `${BASE_URL}/reset-password/${token}`;
 }
 
-// Send password reset email (uses Gmail via nodemailer when configured, otherwise logs link)
+// Send password reset email (uses SendGrid when configured, otherwise logs link)
 async function sendPasswordResetEmail(email, resetLink) {
-  const gmailUser = process.env.GMAIL_USER || "";
-  const gmailPass = process.env.GMAIL_PASS || "";
+  const apiKey = process.env.SENDGRID_API_KEY || "";
+  const from = process.env.SENDGRID_FROM_EMAIL || "";
 
-  if (!gmailUser || !gmailPass) {
+  if (!apiKey || !from) {
     console.log(`[PUTrace password reset link] ${email}: ${resetLink}`);
     return false;
   }
 
   try {
-    const nodemailer = require("nodemailer");
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: { user: gmailUser, pass: gmailPass }
+    const resp = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email }] }],
+        from: { email: from, name: "PUTrace" },
+        subject: "PUTrace Password Reset",
+        content: [{
+          type: "text/html",
+          value: `<p>You requested a password reset for PUTrace.</p>
+                  <p><a href="${resetLink}">Reset your password</a></p>
+                  <p>This link expires in 30 minutes.</p>
+                  <p>If you did not request this, you can ignore this email.</p>`
+        }]
+      })
     });
-    await transporter.sendMail({
-      from: `"PUTrace" <${gmailUser}>`,
-      to: email,
-      subject: "PUTrace Password Reset",
-      html: `<p>You requested a password reset for PUTrace.</p>
-             <p><a href="${resetLink}">Reset your password</a></p>
-             <p>This link expires in 30 minutes.</p>
-             <p>If you did not request this, you can ignore this email.</p>`
-    });
+    if (!resp.ok) {
+      const body = await resp.text();
+      console.error("SendGrid error:", body);
+      return false;
+    }
     return true;
   } catch (err) {
     console.error("Password reset email error:", err);
