@@ -55,10 +55,10 @@
             <span class="pw-toggle" onclick="togglePassword('confirmNewPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('confirmNewPassword', this)}" title="Show password" role="button" tabindex="0">Show</span>
           </div>
         </label>
-        <button type="submit" class="btn-sm btn-outline">Update Password</button>
+        <button type="submit" class="btn-sm">Update Password</button>
       </form>
-      <form method="post" action="/account/password/reset-link">
-        <button type="submit" class="btn-sm">Send Password Reset Link</button>
+      <form method="post" action="/account/password/reset-link" style="margin-top:0.75rem;">
+        <button type="submit" class="btn-sm btn-outline">Send Password Reset Link</button>
       </form>
     </div>
   </div>
