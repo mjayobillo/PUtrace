@@ -10,7 +10,7 @@
           ? unreadMessagesCount
           : 0;
         const _tm = {'/':null,'/dashboard':'Dashboard','/login':'Login','/signup':'Sign Up','/lost':'Lost Board','/found-items':'Found Items','/account':'Account','/items/new':'Register Item','/messages':'Messages','/forgot-password':'Forgot Password','/reset-password':'Reset Password'};
-        const _label = _tm['/' + (path.split('/')[1] || '')];
+        const _label = _tm[path] !== undefined ? _tm[path] : _tm['/' + (path.split('/')[1] || '')];
         const _docTitle = _label ? _label + ' \u2014 PUTrace' : 'PUTrace \u2014 Campus Item Recovery';
       %>
       <title><%= _docTitle %></title>
