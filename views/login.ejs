@@ -26,15 +26,4 @@
   <p class="center-text" style="margin-top:0.8rem;font-size:0.9rem;"><a href="/forgot-password">Forgot password?</a></p>
   <p class="center-text" style="margin-top:1rem;font-size:0.9rem;color:#888;">Don't have an account? <a href="/signup">Sign up</a></p>
 </section>
-<script>
-  (function () {
-    var form = document.querySelector('form[action="/login"]');
-    var btn = document.getElementById("login-submit-btn");
-    if (!form || !btn) return;
-    form.addEventListener("submit", function () {
-      btn.textContent = "Checking...";
-      btn.disabled = true;
-    });
-  })();
-</script>
 <%- include('_footer') %>
