@@ -1103,23 +1103,9 @@ app.get("/download/:token", requireAuth, async (req, res) => {
   if (!base64) return res.status(500).send("QR unavailable");
 
   const imgBuffer = Buffer.from(base64, "base64");
-  const { width, height } = await sharp(imgBuffer).metadata();
-  const textHeight = 44;
-  const svgLabel = Buffer.from(
-    `<svg width="${width}" height="${textHeight}">
-      <rect width="${width}" height="${textHeight}" fill="white"/>
-      <text x="${width / 2}" y="${textHeight - 10}" font-family="sans-serif" font-size="20" font-weight="bold" fill="#1a1a2e" text-anchor="middle">PUTrace</text>
-    </svg>`
-  );
-  const finalBuffer = await sharp(imgBuffer)
-    .extend({ bottom: textHeight, background: { r: 255, g: 255, b: 255, alpha: 1 } })
-    .composite([{ input: svgLabel, top: height, left: 0 }])
-    .png()
-    .toBuffer();
-
   res.setHeader("Content-Type", "image/png");
   res.setHeader("Content-Disposition", `attachment; filename="${safeFileName(item.item_name)}-qr.png"`);
-  res.send(finalBuffer);
+  res.send(imgBuffer);
 });
 
 // ── Start the server ──

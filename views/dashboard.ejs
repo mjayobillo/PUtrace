@@ -8,20 +8,11 @@
 
 <div class="dashboard-top">
   <h2 class="dashboard-title">Welcome, <%= firstName %></h2>
+  <div class="dashboard-quick-links">
+    <a href="/lost" class="button btn-sm btn-outline">Lost Board</a>
+    <a href="/found-items" class="button btn-sm btn-outline">Found Board</a>
+  </div>
 </div>
-
-<section class="card dashboard-actions-card">
-  <div class="section-head">
-    <h2 class="section-title">Quick Actions</h2>
-  </div>
-  <div class="dashboard-toolbar">
-    <div class="dashboard-quick-links">
-      <a href="/lost" class="button btn-sm btn-outline">Lost Board</a>
-      <a href="/found-items" class="button btn-sm btn-outline">Found Board</a>
-    </div>
-    <a href="/items/new" class="button">Register New Item</a>
-  </div>
-</section>
 
 <div class="stats-bar">
   <div class="stat-card">
@@ -41,6 +32,7 @@
 <section class="card">
   <div class="section-head">
     <h2 class="section-title">Your Items</h2>
+    <a href="/items/new" class="button btn-sm">Register New Item</a>
   </div>
 
   <form method="get" action="/dashboard" class="search-filters">
