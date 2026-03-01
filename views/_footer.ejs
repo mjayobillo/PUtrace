@@ -94,6 +94,18 @@
         document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
       })();
 
+      // Form submit spinner
+      (function () {
+        document.querySelectorAll('form').forEach(function (form) {
+          form.addEventListener('submit', function () {
+            var btn = form.querySelector('button[type="submit"], button:not([type])');
+            if (!btn || btn.disabled) return;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-spinner"></span>Please wait…';
+          });
+        });
+      })();
+
       // Hamburger nav toggle
       (function () {
         var toggle = document.getElementById('nav-toggle');
