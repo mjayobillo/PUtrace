@@ -229,13 +229,13 @@ textarea { resize: vertical; min-height: 80px; }
   position: absolute;
   right: 0.7rem;
   cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
   user-select: none;
   opacity: 0.55;
   transition: opacity 0.2s;
   line-height: 1;
+  color: #555;
 }
 .pw-toggle:hover {
   opacity: 1;

@@ -40,19 +40,19 @@
         <label>Current password
           <div class="password-wrap">
             <input type="password" name="current_password" id="currentPassword" required />
-            <span class="pw-toggle" onclick="togglePassword('currentPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('currentPassword', this)}" title="Show password" role="button" tabindex="0">Show</span>
+            <span class="pw-toggle" onclick="togglePassword('currentPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('currentPassword', this)}" title="Show password" role="button" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
           </div>
         </label>
         <label>New password <small style="font-weight:400;color:#aaa;">(min 8 chars)</small>
           <div class="password-wrap">
             <input type="password" name="new_password" id="newPassword" required minlength="8" />
-            <span class="pw-toggle" onclick="togglePassword('newPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('newPassword', this)}" title="Show password" role="button" tabindex="0">Show</span>
+            <span class="pw-toggle" onclick="togglePassword('newPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('newPassword', this)}" title="Show password" role="button" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
           </div>
         </label>
         <label>Confirm new password
           <div class="password-wrap">
             <input type="password" name="confirm_new_password" id="confirmNewPassword" required minlength="8" />
-            <span class="pw-toggle" onclick="togglePassword('confirmNewPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('confirmNewPassword', this)}" title="Show password" role="button" tabindex="0">Show</span>
+            <span class="pw-toggle" onclick="togglePassword('confirmNewPassword', this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();togglePassword('confirmNewPassword', this)}" title="Show password" role="button" tabindex="0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></span>
           </div>
         </label>
         <button type="submit" class="btn-sm">Update Password</button>
